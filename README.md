@@ -33,4 +33,34 @@ https://www.youtube.com/@leonard2834/videos，239
 10	波特王好帥
 https://www.youtube.com/@Realpotterking/videos，600	
 
+11  陳破空縱論天下
+https://www.youtube.com/@user-xl8fu9dw5q/videos, 1020
+
+12  天亮時分
+https://www.youtube.com/@TianLiangTimes/videos, 343
+
+13  小岛大浪吹-非正经政经频道
+https://www.youtube.com/@xiaodaodalang/videos, 179
+
+14  郭文贵
+https://www.youtube.com/@user-jt1zr1ey7v/videos, 1020
+
+15  世界看台灣
+https://www.youtube.com/@Taiwan16888/videos, 1020
+
+16  公子沈 Mr. Shen
+https://www.youtube.com/@gongzishen/videos, 1020
+
+17  狗哥狗哥DogChinaShow
+https://www.youtube.com/@dogchinashow/videos, 1020
+
+18  吴建民
+https://www.youtube.com/@WuJianMin/videos, 1020
+
+19  五岳散人
+https://www.youtube.com/@wuyuesanren/videos, 1020
+
+20  睿眼看世界
+https://www.youtube.com/@user-tp1lk6kj1g/videos, 1020
+
 【排名参考】：https://www.youtube.com/watch?v=yIUk5oMroFc
