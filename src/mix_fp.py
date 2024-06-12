@@ -52,7 +52,7 @@ def process_fp_file(file_path, processed_file_path):
 if __name__ == '__main__':
     start = time.time()
     
-    fp_file = r'data/yt_fp/yt_fp_wenzhaoofficial_202406051522.csv'
+    fp_file = 'data/yt_fp/yt_fp_wenzhaoofficial_202406051522.csv'
     processed_fp_file = 'data/final_fp/final_fp_wenzhaoofficial_202406051522.csv'
 
     with open(processed_fp_file, 'w', newline='') as processed_file:
