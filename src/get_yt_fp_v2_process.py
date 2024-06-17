@@ -301,24 +301,19 @@ class Video():
                     videopath = self.down_path+'video/{}/{}_{}.webm'.format(self.video_name, self.video_name, itag)
                 else:
                     raise ValueError('Itag Wrong')
-                # @add 包括小于4kb的视频要重新下载
+                # @add 小于4kb的视频要重新下载
                 if not os.path.exists(videopath+'.part') and not os.path.exists(videopath) or (os.path.exists(videopath+'.part') and os.path.getsize(videopath+'.part') < 4096): 
                     print("\nitag={} is downloading...".format(itag))
                     # @ modify
-                    command = 'yt-dlp -f {} {} -o {}'.format(itag, self.url, videopath)
+                    command = 'yt-dlp --limit-rate 15K -f {} {} -o {}'.format(itag, self.url, videopath)
                     command = command.split(' ')
 
-                    # 长度达到8，pop最老的（已6秒)，杀掉itag级别进程，itag下载异常时把video追加在全局video_list
+                    # 长度达到8，pop最老的（已6秒)，杀掉itag级别，itag下载异常时把video追加在全局video_list
                     if len(down_process_list) == process_count:
                         head_task = down_process_list.pop(0)
                         head_task[0].kill()
                         # kill oldest process时的情况有两种：1.正常 2.异常
                         # 对oldest process异常的情况进行处理
-
-                        # ###### @add 先删除小于4KB的文件####
-                        # if os.path.exists(head_task[1] +'.part') and os.path.getsize(head_task[1] +'.part') < 4096:
-                        #     os.remove(head_task[1] +'.part')
-
                         if not os.path.exists(head_task[1] +'.part') and not os.path.exists(head_task[1]):
                             global video_list
                             if not video_list[-1] is head_task[-1]:#同一个video有多个itag，但video_list只需加一次video级别
@@ -383,7 +378,7 @@ global video_list, process_count, sleep_time, username
 url_paths = [ 'data/yt_crawled_url/wuyuesanren_url_20240609015012.csv', 'data/yt_crawled_url/xiaodaodalang_url_20240609014443.csv']
 video_list = []
 process_count = 8
-per_down_time = 6
+per_down_time = 8
 sleep_time = per_down_time / process_count
 
 for url_path in url_paths:
@@ -397,7 +392,7 @@ for url_path in url_paths:
         writer = csv.writer(file)
         writer.writerow(['ID', 'url', 'itag', 'quality', 'format','vcodec', 'start', 'end', 'contentLength', 'fingerprint', 'duration', 'timeline'])
 
-    # 设置进程列表
+    # 设置任务列表
     url_df = pd.read_csv(url_path)
     for index, row in url_df.iterrows():
         video_list.append(Video(index, row['url'], down_path, yt_fp_path))
@@ -408,7 +403,7 @@ for url_path in url_paths:
     for video in video_list:
         video.get_websource()
         video.analyse_websource()
-        video.download_video(down_process_list) #进程控制
+        video.download_video(down_process_list) 
 
     # 尾部未完成任务的处理
     loop_time = 0
