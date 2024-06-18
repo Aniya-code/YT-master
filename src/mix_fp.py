@@ -2,6 +2,7 @@
 import time
 import csv
 import re
+import os
 
 def process_fp_file(file_path, processed_file_path):
     with open(file_path, 'r', newline='') as file:
@@ -52,14 +53,19 @@ def process_fp_file(file_path, processed_file_path):
 if __name__ == '__main__':
     start = time.time()
     
-    fp_file = 'data/yt_fp/yt_fp_wenzhaoofficial_202406051522.csv'
-    processed_fp_file = 'data/final_fp/final_fp_wenzhaoofficial_202406051522.csv'
+    # fp_file = 'data/yt_fp/yt_fp_wenzhaoofficial_202406051522.csv'
+    # final_fp_file = 'data/final_fp/final_fp_wenzhaoofficial_202406051522.csv'
 
-    with open(processed_fp_file, 'w', newline='') as processed_file:
-            writer = csv.writer(processed_file)
-            writer.writerow(['ID', 'url', 'video_itag', 'video_quality', 'video_format', 'video_header_end', 'audio_itag','audio_quality', 'audio_format', 'video_fp', 'video_timeline', 'audio_fp', 'audio_timeline'])
-            # writer.writerow(['ID', 'url', 'video_fp', 'video_timeline', 'audio_fp', 'audio_timeline'])
-    process_fp_file(fp_file, processed_fp_file)
-    
-    print(f'###一共{time.time()-start}s###')
+    fp_file_folder = 'data/yt_fp'
+    for filename in os.listdir(fp_file_folder):
+        fp_file = os.path.join(fp_file_folder, filename).replace('\\', '/')
+        final_fp_file = 'data/final_fp/final_' + filename.split('_', 1)[1]
+        if not os.path.exists(final_fp_file):
+            with open(final_fp_file, 'w', newline='') as processed_file:
+                    writer = csv.writer(processed_file)
+                    writer.writerow(['ID', 'url', 'video_itag', 'video_quality', 'video_format', 'video_header_end', 'audio_itag','audio_quality', 'audio_format', 'video_fp', 'video_timeline', 'audio_fp', 'audio_timeline'])
+                    # writer.writerow(['ID', 'url', 'video_fp', 'video_timeline', 'audio_fp', 'audio_timeline'])
+            process_fp_file(fp_file, final_fp_file)
+        
+        print(f'###一共{time.time()-start}s###')
 
