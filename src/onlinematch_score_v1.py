@@ -1,5 +1,72 @@
 import csv
 from collections import defaultdict
+import re
+import os
+
+
+def load_test_csv(file_path):
+    '''
+    Step1: 加载测试在线chunk csv文件
+    '''
+    test_csv = []
+    with open(file_path, mode='r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            row['body_list'] = list(map(int, row['body_list'].split('/')[1:]))
+            test_csv.append(row)
+    return test_csv
+
+
+def load_log(log_path):
+    '''
+    OR step1: 加载日志在线chunk txt文件
+    '''
+    chunk_list = []
+    with open('log.txt', 'r') as file:
+        log_content = file.read()
+    match = re.search(r'chunk_list:\[([^\]]+)\]', log_content)
+    if match:
+        chunk_list_str = match.group(1)  # 提取括号内的内容
+        chunk_list_str = chunk_list_str.strip(',')  # 去除首尾的逗号
+        chunk_list = [int(num_str) for num_str in chunk_list_str.split(',') if num_str.strip()]  # 将字符串列表转换为整数列表
+        # 输出整数列表
+        print(chunk_list)
+    else:
+        print("chunk_list not found in the log file.")
+    return chunk_list
+
+def load_fingerprint_db(file_path):
+    '''
+    step2: 加载一个博主的指纹库
+    '''
+    fingerprint_db = []
+    with open(file_path, mode='r') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            row['video_fp'] = list(map(int, row['video_fp'].split('/')[1:]))
+            row['audio_fp'] = list(map(int, row['audio_fp'].split('/')[1:]))
+            row['video_timeline'] = list(map(int, row['video_timeline'].split('/')[1:]))
+            row['audio_timeline'] = list(map(int, row['audio_timeline'].split('/')[1:]))
+            fingerprint_db.append(row)
+    return fingerprint_db
+
+def load_fingerprint_db_all(file_folder):
+    '''
+    OR step2: 加载所有博主的指纹库
+    '''
+    fingerprint_db = []
+    for filename in os.listdir(file_folder):
+        file_path = os.path.join(file_folder,filename).replace('\\', '/')
+        with open(file_path, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                row['video_fp'] = list(map(int, row['video_fp'].split('/')[1:]))
+                row['audio_fp'] = list(map(int, row['audio_fp'].split('/')[1:]))
+                row['video_timeline'] = list(map(int, row['video_timeline'].split('/')[1:]))
+                row['audio_timeline'] = list(map(int, row['audio_timeline'].split('/')[1:]))
+                fingerprint_db.append(row)
+    return fingerprint_db
+
 
 def _check_time_constraint(fingerprint, video_seg_start_idx, video_seg_end_idx, audio_seg_start_idx, audio_seg_end_idx):
     video_timeline = fingerprint['video_timeline']
@@ -108,9 +175,9 @@ def match_chunk_with_fingerprint(chunk, fingerprint, v_start_idx, a_start_idx, f
                         video_sum = sum(video_fp[v_start:v_end])
                         audio_sum = sum(audio_fp[a_start:a_end])
                         total_sum = video_sum + audio_sum
-                        if -2000 <= chunk-total_sum < 4000:
-                            # if  "_ia" in fingerprint['url'] and fingerprint['ID']=='30': 
-                                # print(f"--{chunk}\nMatch {fingerprint['ID']}: {fingerprint['url'][-11:]}: \n {video_sum}={video_fp[v_start:v_end]}s_idx:{v_start} \n {audio_sum}={audio_fp[a_start:a_end]}s_idx:{a_start} \n {chunk-total_sum}")
+                        if -2000 <= chunk-total_sum < 5000:
+                            if  "Ve" in fingerprint['url'] and fingerprint['ID']=='1': 
+                                print(f"--{chunk}\nMatch {fingerprint['ID']}: {fingerprint['url'][-11:]}: \n {video_sum}={video_fp[v_start:v_end]}s_idx:{v_start} \n {audio_sum}={audio_fp[a_start:a_end]}s_idx:{a_start} \n {chunk-total_sum}")
                             return True, v_end, a_end, v_start==v_start_idx, a_start==a_start_idx # return:（boolean, 下一个chunk去匹配每一行时的v_start_idx, 同理a_start_idx）
     
     return False, -1, -1, False, False
@@ -201,34 +268,13 @@ def update_matches(new_chunk, fingerprint_db, i, flexible=False, is_restart=Fals
         # print('***********restarted***********')
         # return main(cur_context['test_case'], is_restart=True)
 
-def load_fingerprint_db(file_path):
-    fingerprint_db = []
-    with open(file_path, mode='r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            row['video_fp'] = list(map(int, row['video_fp'].split('/')[1:]))
-            row['audio_fp'] = list(map(int, row['audio_fp'].split('/')[1:]))
-            row['video_timeline'] = list(map(int, row['video_timeline'].split('/')[1:]))
-            row['audio_timeline'] = list(map(int, row['audio_timeline'].split('/')[1:]))
-            fingerprint_db.append(row)
-    return fingerprint_db
-
-def load_test_csv(file_path):
-    test_csv = []
-    with open(file_path, mode='r') as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            row['body_list'] = list(map(int, row['body_list'].split('/')[1:]))
-            test_csv.append(row)
-    return test_csv
-
-def main(test_case, is_restart=False):
+def main(test_case, final_fp_folder,is_restart=False):
     # init
     global fingerprint_db, final_result
     global chunk_stream, current_matches
     global cur_context # for restart
     if not is_restart:
-        fingerprint_db = load_fingerprint_db('final_yt_online1.csv')
+        fingerprint_db = load_fingerprint_db_all(final_fp_folder)
         chunk_stream = []
         current_matches = []
         final_result = None
@@ -256,50 +302,21 @@ def main(test_case, is_restart=False):
     return ret
 
 if __name__ == '__main__':
-    right_count = 0
-    test_csv = load_test_csv('body_list_test.csv')
-    wrong_list = []
-    for row in test_csv:
-        test_case = row['body_list']
-        test_case[0] -= 2000
-        take_idx = 0
-        for i in range(len(test_case)):
-            case = test_case[i]
-            if case / 1e6 > 1 and str(case)[:2] in ['31','16']:
-                take_idx += 1
-            else:
-                break
-        test_case = test_case[take_idx: take_idx+10]
-        print(f"video:{row['url']}, test_case:{test_case}")
-        
-        ret = main(test_case)
-
-        if row['url'] in ret:
-            right_count += 1
-        else:
-            wrong_list.append({row['url']: test_case})
-            print("#### Wrong ######")
-            print(test_case)
-            print("############# Wrong ##############")
-        print(right_count) # right count
-        print(len(test_csv)) # total count
-        print(right_count/len(test_csv)) # rate
-        print(wrong_list) # wrong case list
-
-    # 测试额外偏移一个chunk，是否可以纠错
-    for d in wrong_list:
-        for url, case in d.items():
-            case = case[1:]
-            ret = main(case)
-            print(url)
-            print(case)
-            if url not in ret:
-                print('@'*20)
-                print('---wrong---')
-                print('@'*20)
+    ###############################################
+    test_case = load_log('log.txt')
+    final_fp_folder = 'data/final_fp'
+    ###############################################
     
-    # 单独测试特殊用例
-    # test_case = "1174869, 368771, 929679, 1221531, 788146, 776362, 726561, 795520, 777196, 1111483"
-    # test_case = list(map(int, test_case.split(', ')[1:]))
-    # test_case[0] -= 2000
-    # main(test_case)
+    test_case[0] -= 2000
+    take_idx = 0
+    for i in range(len(test_case)):
+        case = test_case[i]
+        case = int(case*0.9477-320.6466) # 还原
+        if case / 1e6 > 1 and str(case)[:2] in ['31','16']:
+            take_idx += 1
+        else:
+            break
+    test_case = test_case[take_idx: take_idx+10]
+    print(f"test_case:{test_case}")
+    
+    ret = main(test_case, final_fp_folder)
